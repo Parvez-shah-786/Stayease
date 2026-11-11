@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StayEase - Hotel Management &amp; Room Booking System</title>
+  <style>
+/* ===== CSS: design of the whole website ===== */
+
+:root {
+  --navy: #1b2a49;
+  --gold: #c9973b;
+  --bg: #f6f4ef;
+  --white: #ffffff;
+  --text: #2b2b2b;
+  --muted: #6b6b6b;
+  --border: #e0dccf;
+  --good: #1f9d55;
+  --bad: #d64545;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+h1, h2, h3 { color: var(--navy); }
+.muted { color: var(--muted); }
+
+/* ----- Navbar ----- */
+.navbar {
+  background: var(--navy);
+  padding: 14px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.logo { color: var(--gold); font-size: 24px; font-weight: bold; text-decoration: none; }
+.nav-links { display: flex; gap: 18px; }
+.nav-links a { color: white; text-decoration: none; }
+.nav-links a.active { color: var(--gold); font-weight: bold; }
+.menu-btn { display: none; background: none; border: 1px solid white; color: white; font-size: 20px; padding: 4px 10px; }
+
+/* ----- Buttons ----- */
+button, .btn {
+  background: var(--gold);
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+button:hover, .btn:hover { opacity: 0.85; }
+button:disabled, .btn.disabled { background: #aaa; cursor: not-allowed; }
+.btn-red { background: var(--bad); padding: 6px 12px; font-size: 14px; }
+
+/* ----- Hero ----- */
+.hero {
+  background: linear-gradient(rgba(27,42,73,0.85), rgba(27,42,73,0.85)), #1b2a49;
+  color: white;
+  text-align: center;
+  padding: 70px 20px;
+}
+.hero h1 { color: white; font-size: 40px; margin: 0 0 10px; }
+.hero p { font-size: 18px; margin-bottom: 24px; }
+
+/* ----- Cards ----- */
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px;
+}
+.card h3 { margin-top: 0; }
+.center { text-align: center; }
+.big { font-size: 34px; }
+
+.room-top {
+  height: 110px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 50px;
+  margin-bottom: 12px;
+}
+.price { font-size: 20px; color: var(--navy); font-weight: bold; }
+.tag { background: var(--bg); padding: 2px 8px; border-radius: 10px; font-size: 13px; }
+.left-ok { color: var(--good); font-weight: bold; }
+.left-no { color: var(--bad); font-weight: bold; }
+
+/* ----- Forms ----- */
+.form-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+label { display: block; margin-top: 12px; font-weight: bold; }
+input, select, textarea {
+  width: 100%;
+  padding: 10px;
+  margin-top: 4px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 16px;
+  background: white;
+}
+input[type=checkbox] { width: auto; margin-right: 6px; }
+.error { color: var(--bad); font-size: 14px; display: block; min-height: 18px; }
+.success-box {
+  background: #e8f6ee;
+  border: 1px solid var(--good);
+  border-radius: 10px;
+  padding: 20px;
+}
+.summary { background: var(--bg); border-radius: 8px; padding: 12px; margin-top: 14px; }
+
+/* ----- Table ----- */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; background: white; }
+th, td { padding: 10px; border: 1px solid var(--border); text-align: left; font-size: 15px; }
+th { background: var(--navy); color: white; }
+.status-ok { color: var(--good); font-weight: bold; }
+.status-cancel { color: var(--bad); font-weight: bold; }
+
+/* ----- Footer ----- */
+.footer {
+  background: var(--navy);
+  color: #ddd;
+  text-align: center;
+  padding: 22px;
+  margin-top: 40px;
+}
+.footer p { margin: 4px 0; }
+
+/* ----- Mobile ----- */
+@media (max-width: 800px) {
+  .grid, .grid4 { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 600px) {
+  .grid, .grid4, .form-row { grid-template-columns: 1fr; }
+  .menu-btn { display: block; }
+  .nav-links { display: none; flex-direction: column; width: 100%; margin-top: 10px; }
+  .nav-links.open { display: flex; }
+  .hero h1 { font-size: 28px; }
+}
+
+/* ----- Page switching (only the active page is visible) ----- */
+.page { display: none; }
+.page.active { display: block; }
+.nav-links a { cursor: pointer; }
+  </style>
+</head>
+<body>
+
+  <!-- ================= NAVIGATION BAR ================= -->
+  <nav class="navbar">
+    <a href="#home" class="logo">🏨 StayEase</a>
+    <button class="menu-btn" id="menuBtn">☰</button>
+    <div class="nav-links" id="navLinks">
+      <a href="#home" id="nav-home">Home</a>
+      <a href="#rooms" id="nav-rooms">Rooms</a>
+      <a href="#booking" id="nav-booking">Book Now</a>
+      <a href="#mybookings" id="nav-mybookings">My Bookings</a>
+      <a href="#contact" id="nav-contact">Contact</a>
+    </div>
+  </nav>
+
+  <!-- ================= PAGE 1: HOME ================= -->
+  <div class="page" id="page-home">
+    <section class="hero">
+      <h1>Welcome to StayEase Hotel</h1>
+      <p>Comfortable rooms, friendly service and easy online booking.</p>
+      <a class="btn" href="#rooms">View Rooms</a>
+      <a class="btn" href="#booking">Book Now</a>
+    </section>
+
+    <div class="container">
+      <h2>Our Facilities</h2>
+      <div class="grid4">
+        <div class="card center"><div class="big">📶</div><h3>Free Wi-Fi</h3><p class="muted">Fast internet in all rooms.</p></div>
+        <div class="card center"><div class="big">🍳</div><h3>Breakfast</h3><p class="muted">Fresh breakfast every morning.</p></div>
+        <div class="card center"><div class="big">🚗</div><h3>Parking</h3><p class="muted">Safe parking for guests.</p></div>
+        <div class="card center"><div class="big">🕐</div><h3>24x7 Service</h3><p class="muted">Reception is always open.</p></div>
+      </div>
+
+      <h2>Featured Rooms</h2>
+      <div class="grid" id="featuredRooms"></div>
+
+      <h2>How to Book</h2>
+      <div class="grid">
+        <div class="card"><h3>1. Choose a room</h3><p class="muted">Check rooms and availability for your dates.</p></div>
+        <div class="card"><h3>2. Fill the form</h3><p class="muted">Enter your details and travel dates.</p></div>
+        <div class="card"><h3>3. Get confirmation</h3><p class="muted">Receive your booking ID instantly.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= PAGE 2: ROOMS ================= -->
+  <div class="page" id="page-rooms">
+    <div class="container">
+      <h1>Our Rooms</h1>
+
+      <div class="card">
+        <form id="searchForm">
+          <div class="form-row">
+            <div>
+              <label for="rCheckIn">Check-in (optional)</label>
+              <input type="date" id="rCheckIn">
+            </div>
+            <div>
+              <label for="rCheckOut">Check-out (optional)</label>
+              <input type="date" id="rCheckOut">
+            </div>
+            <div>
+              <label for="rType">Room type</label>
+              <select id="rType">
+                <option value="All">All</option>
+                <option value="Standard">Standard</option>
+                <option value="Deluxe">Deluxe</option>
+                <option value="Suite">Suite</option>
+              </select>
+            </div>
+            <div>
+              <label for="rGuests">Guests</label>
+              <select id="rGuests">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+              </select>
+            </div>
+          </div>
+          <span class="error" id="rDateError"></span>
+          <button type="submit">Search Rooms</button>
+        </form>
+      </div>
+
+      <br>
+      <div class="grid" id="roomBox"></div>
+    </div>
+  </div>
+
+  <!-- ================= PAGE 3: BOOK NOW ================= -->
+  <div class="page" id="page-booking">
+    <div class="container">
+      <h1>Book Your Room</h1>
+
+      <div class="card">
+        <form id="bookingForm" novalidate>
+          <div class="form-row">
+            <div>
+              <label for="bName">Full Name</label>
+              <input type="text" id="bName" placeholder="Your name">
+              <span class="error" id="bNameErr"></span>
+            </div>
+            <div>
+              <label for="bEmail">Email</label>
+              <input type="text" id="bEmail" placeholder="you@example.com">
+              <span class="error" id="bEmailErr"></span>
+            </div>
+            <div>
+              <label for="bPhone">Mobile Number</label>
+              <input type="text" id="bPhone" placeholder="10 digit number" maxlength="10">
+              <span class="error" id="bPhoneErr"></span>
+            </div>
+            <div>
+              <label for="bRoom">Room</label>
+              <select id="bRoom"></select>
+              <span class="error" id="bRoomErr"></span>
+            </div>
+            <div>
+              <label for="bCheckIn">Check-in Date</label>
+              <input type="date" id="bCheckIn">
+            </div>
+            <div>
+              <label for="bCheckOut">Check-out Date</label>
+              <input type="date" id="bCheckOut">
+            </div>
+          </div>
+          <span class="error" id="bDateErr"></span>
+
+          <label for="bGuests">Number of Guests</label>
+          <input type="number" id="bGuests" value="1" min="1">
+          <span class="error" id="bGuestErr"></span>
+
+          <div class="summary" id="summary"></div>
+
+          <label><input type="checkbox" id="bAgree"> I accept the hotel rules (ID proof required at check-in)</label>
+          <span class="error" id="bAgreeErr"></span>
+
+          <button type="submit">Confirm Booking</button>
+        </form>
+
+        <div id="confirmBox"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= PAGE 4: MY BOOKINGS ================= -->
+  <div class="page" id="page-mybookings">
+    <div class="container">
+      <h1>Manage Bookings</h1>
+
+      <div class="grid4">
+        <div class="card center"><div class="big" id="sTotal">0</div><p class="muted">Total Bookings</p></div>
+        <div class="card center"><div class="big" id="sConfirmed">0</div><p class="muted">Confirmed</p></div>
+        <div class="card center"><div class="big" id="sCancelled">0</div><p class="muted">Cancelled</p></div>
+        <div class="card center"><div class="big" id="sRevenue">₹0</div><p class="muted">Revenue</p></div>
+      </div>
+
+      <br>
+      <input type="text" id="searchBox" placeholder="Search by booking ID or guest name">
+      <br><br>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Booking ID</th><th>Guest</th><th>Room</th><th>Dates</th><th>Total</th><th>Status</th><th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= PAGE 5: CONTACT ================= -->
+  <div class="page" id="page-contact">
+    <div class="container">
+      <h1>Contact Us</h1>
+      <div class="grid">
+        <div class="card">
+          <h3>Hotel Details</h3>
+          <p>📍 12 Lake Road, Pune</p>
+          <p>📞 +91 98765 43210</p>
+          <p>✉️ stay@stayease.com</p>
+        </div>
+        <div class="card" style="grid-column: span 2;">
+          <form id="contactForm" novalidate>
+            <label for="cName">Name</label>
+            <input type="text" id="cName" placeholder="Your name">
+            <span class="error" id="cNameErr"></span>
+
+            <label for="cEmail">Email</label>
+            <input type="text" id="cEmail" placeholder="you@example.com">
+            <span class="error" id="cEmailErr"></span>
+
+            <label for="cSubject">Subject</label>
+            <select id="cSubject">
+              <option value="">-- Choose --</option>
+              <option>Booking help</option>
+              <option>Feedback</option>
+              <option>Complaint</option>
+              <option>Other</option>
+            </select>
+            <span class="error" id="cSubjectErr"></span>
+
+            <label for="cMessage">Message</label>
+            <textarea id="cMessage" rows="4" placeholder="Write your message"></textarea>
+            <span class="error" id="cMessageErr"></span>
+
+            <button type="submit">Send Message</button>
+            <p class="left-ok" id="okMsg"></p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="footer">
+    <p>🏨 StayEase Hotel Management &amp; Room Booking System</p>
+    <p>Made by Parvez Shah | Roll no 26CO108</p>
+  </footer>
+
+
+  <script>
+  // =====================================================
+  //  StayEase - JavaScript (whole website)
+  //  Parts: 1 Room data | 2 Bookings | 3 Helpers | 4 Availability
+  //         5 Page switching | 6 Home | 7 Rooms | 8 Booking
+  //         9 My Bookings | 10 Contact | 11 Start
+  // =====================================================
+
+
+  // ---------- 1. ROOM DATA ----------
+  // "total" = how many rooms of this type the hotel has
+  var rooms = [
+    { id: 1, name: "Budget Single Room",  type: "Standard", price: 1500,  guests: 1, total: 6, icon: "🛏️", color: "#dce6f5",
+      info: "Simple and clean room for solo travellers. AC, TV, Wi-Fi." },
+    { id: 2, name: "Standard Double Room", type: "Standard", price: 2500,  guests: 2, total: 5, icon: "🛌", color: "#e4f1e4",
+      info: "Comfortable double bed room with AC, TV and free Wi-Fi." },
+    { id: 3, name: "Deluxe Room",          type: "Deluxe",   price: 3800,  guests: 3, total: 4, icon: "🛋️", color: "#fbeedb",
+      info: "Spacious room with city view, mini fridge and breakfast." },
+    { id: 4, name: "Family Suite",         type: "Suite",    price: 5500,  guests: 5, total: 3, icon: "👨‍👩‍👧", color: "#f3e1ee",
+      info: "Two bedrooms and a living area. Best for families." },
+    { id: 5, name: "Executive Suite",      type: "Suite",    price: 7200,  guests: 3, total: 2, icon: "💼", color: "#e1e8f3",
+      info: "Work desk, lounge area, bathtub and free airport pickup." },
+    { id: 6, name: "Royal Presidential Suite", type: "Suite", price: 12000, guests: 4, total: 1, icon: "👑", color: "#f6ecc9",
+      info: "Our best room with private balcony, jacuzzi and butler service." }
+  ];
+
+  function findRoom(id) {
+    for (var i = 0; i < rooms.length; i++) {
+      if (rooms[i].id === Number(id)) {
+        return rooms[i];
+      }
+    }
+    return null;
+  }
+
+
+  // ---------- 2. BOOKINGS (saved in the browser) ----------
+  function getBookings() {
+    var saved = localStorage.getItem("stayeaseBookings");
+    if (saved) {
+      return JSON.parse(saved);
+    }
+    return [];
+  }
+
+  function saveBookings(list) {
+    localStorage.setItem("stayeaseBookings", JSON.stringify(list));
+  }
+
+
+  // ---------- 3. DATE AND MONEY HELPERS ----------
+  // Today's date as text like 2026-11-10 (same format as <input type="date">)
+  function todayText() {
+    var d = new Date();
+    var month = String(d.getMonth() + 1).padStart(2, "0");
+    var day = String(d.getDate()).padStart(2, "0");
+    return d.getFullYear() + "-" + month + "-" + day;
+  }
+
+  // How many nights between two date texts
+  function nightsBetween(checkIn, checkOut) {
+    var oneDay = 24 * 60 * 60 * 1000;
+    return Math.round((new Date(checkOut) - new Date(checkIn)) / oneDay);
+  }
+
+  function money(amount) {
+    return "₹" + Number(amount).toLocaleString("en-IN");
+  }
+
+  // Shows or clears an error message. Returns true when there is NO error.
+  function setError(id, text) {
+    document.getElementById(id).textContent = text;
+    return text === "";
+  }
+
+
+  // ---------- 4. AVAILABILITY ----------
+  // How many rooms of this type are still free between two dates
+  function roomsLeft(roomId, checkIn, checkOut) {
+    var room = findRoom(roomId);
+    var bookings = getBookings();
+    var used = 0;
+    for (var i = 0; i < bookings.length; i++) {
+      var b = bookings[i];
+      // two stays overlap if one starts before the other ends
+      var overlap = b.checkIn < checkOut && checkIn < b.checkOut;
+      if (b.roomId === room.id && b.status === "Confirmed" && overlap) {
+        used++;
+      }
+    }
+    return room.total - used;
+  }
+
+  // Room card HTML (used on Home and Rooms pages)
+  // "left" = free rooms. Pass -1 when dates are not chosen.
+  function roomCardHTML(room, checkIn, checkOut, left) {
+    var bookBtn = "<button onclick=\"goBook(" + room.id + ", '" + checkIn + "', '" + checkOut + "')\">Book Now</button>";
+
+    var html = "<div class='card'>";
+    html += "<div class='room-top' style='background:" + room.color + "'>" + room.icon + "</div>";
+    html += "<h3>" + room.name + "</h3>";
+    html += "<p class='muted'>" + room.info + "</p>";
+    html += "<p><span class='tag'>" + room.type + "</span> <span class='tag'>Up to " + room.guests + " guests</span></p>";
+    html += "<p class='price'>" + money(room.price) + " <small class='muted'>/ night</small></p>";
+
+    if (left === -1) {
+      html += bookBtn;
+    } else if (left > 0) {
+      html += "<p class='left-ok'>" + left + " room(s) available</p>" + bookBtn;
+    } else {
+      html += "<p class='left-no'>Sold out for these dates</p>";
+      html += "<span class='btn disabled'>Not available</span>";
+    }
+    html += "</div>";
+    return html;
+  }
+
+
+  // ---------- 5. PAGE SWITCHING ----------
+  var pageNames = ["home", "rooms", "booking", "mybookings", "contact"];
+  var bookingPrefill = null;     // room and dates sent from the Rooms page
+  var justBooked = false;        // true after a booking is confirmed
+
+  // Shows one page and hides the others
+  function showPage(name) {
+    for (var i = 0; i < pageNames.length; i++) {
+      var n = pageNames[i];
+      document.getElementById("page-" + n).classList.remove("active");
+      document.getElementById("nav-" + n).classList.remove("active");
+    }
+    document.getElementById("page-" + name).classList.add("active");
+    document.getElementById("nav-" + name).classList.add("active");
+
+    document.getElementById("navLinks").classList.remove("open");   // close mobile menu
+    window.scrollTo(0, 0);
+
+    // refresh the page content every time it opens
+    if (name === "home") showFeatured();
+    if (name === "rooms") showRooms();
+    if (name === "booking") openBooking();
+    if (name === "mybookings") showTable();
+  }
+
+  // Reads the part after # in the address (like #rooms)
+  function handleHash() {
+    var name = window.location.hash.replace("#", "");
+    if (pageNames.indexOf(name) === -1) {
+      name = "home";
+    }
+    showPage(name);
+  }
+
+  // Called by the "Book Now" button on a room card
+  function goBook(roomId, checkIn, checkOut) {
+    bookingPrefill = { room: roomId, checkIn: checkIn, checkOut: checkOut };
+    window.location.hash = "#booking";
+  }
+
+  // Mobile menu button
+  document.getElementById("menuBtn").onclick = function () {
+    document.getElementById("navLinks").classList.toggle("open");
+  };
+
+
+  // ---------- 6. HOME PAGE ----------
+  function showFeatured() {
+    var html = "";
+    for (var i = 2; i < 5; i++) {          // Deluxe, Family Suite, Executive Suite
+      html += roomCardHTML(rooms[i], "", "", -1);
+    }
+    document.getElementById("featuredRooms").innerHTML = html;
+  }
+
+
+  // ---------- 7. ROOMS PAGE ----------
+  var rCheckIn = document.getElementById("rCheckIn");
+  var rCheckOut = document.getElementById("rCheckOut");
+  rCheckIn.min = todayText();
+  rCheckOut.min = todayText();
+
+  function showRooms() {
+    var type = document.getElementById("rType").value;
+    var guests = Number(document.getElementById("rGuests").value);
+    var checkIn = rCheckIn.value;
+    var checkOut = rCheckOut.value;
+
+    // ----- Validate dates (only if the user typed them) -----
+    document.getElementById("rDateError").textContent = "";
+    var useDates = false;
+    if (checkIn !== "" || checkOut !== "") {
+      if (checkIn === "" || checkOut === "") {
+        document.getElementById("rDateError").textContent = "Please select both check-in and check-out dates.";
+        return;
+      }
+      if (checkIn < todayText()) {
+        document.getElementById("rDateError").textContent = "Check-in date cannot be in the past.";
+        return;
+      }
+      if (checkOut <= checkIn) {
+        document.getElementById("rDateError").textContent = "Check-out must be after check-in.";
+        return;
+      }
+      useDates = true;
+    }
+
+    // ----- Build the list -----
+    var html = "";
+    var count = 0;
+    for (var i = 0; i < rooms.length; i++) {
+      var r = rooms[i];
+      if (type !== "All" && r.type !== type) continue;   // type filter
+      if (r.guests < guests) continue;                    // guests filter
+
+      var left = -1;
+      if (useDates) {
+        left = roomsLeft(r.id, checkIn, checkOut);
+      }
+      html += roomCardHTML(r, useDates ? checkIn : "", useDates ? checkOut : "", left);
+      count++;
+    }
+
+    if (count === 0) {
+      html = "<p>No rooms found. Try changing the filters.</p>";
+    }
+    document.getElementById("roomBox").innerHTML = html;
+  }
+
+  document.getElementById("searchForm").onsubmit = function (event) {
+    event.preventDefault();
+    showRooms();
+  };
+
+
+  // ---------- 8. BOOKING PAGE ----------
+  var bookingForm = document.getElementById("bookingForm");
+  var bRoom = document.getElementById("bRoom");
+  var bCheckIn = document.getElementById("bCheckIn");
+  var bCheckOut = document.getElementById("bCheckOut");
+  var summary = document.getElementById("summary");
+
+  bCheckIn.min = todayText();
+  bCheckOut.min = todayText();
+
+  // Fill the room dropdown
+  var options = "<option value=''>-- Select room --</option>";
+  for (var i = 0; i < rooms.length; i++) {
+    options += "<option value='" + rooms[i].id + "'>" + rooms[i].name + " (" + money(rooms[i].price) + "/night)</option>";
+  }
+  bRoom.innerHTML = options;
+
+  // Runs every time the Book Now page opens
+  function openBooking() {
+    if (justBooked) {                      // start fresh after a confirmed booking
+      bookingForm.reset();
+      bookingForm.style.display = "block";
+      document.getElementById("confirmBox").innerHTML = "";
+      justBooked = false;
+    }
+    if (bookingPrefill) {                  // room and dates chosen on the Rooms page
+      bRoom.value = bookingPrefill.room;
+      if (bookingPrefill.checkIn !== "") bCheckIn.value = bookingPrefill.checkIn;
+      if (bookingPrefill.checkOut !== "") bCheckOut.value = bookingPrefill.checkOut;
+      bookingPrefill = null;
+    }
+    updateSummary();
+  }
+
+  // Price summary
+  function updateSummary() {
+    var room = findRoom(bRoom.value);
+    var checkIn = bCheckIn.value;
+    var checkOut = bCheckOut.value;
+
+    if (!room || checkIn === "" || checkOut === "" || checkOut <= checkIn) {
+      summary.innerHTML = "Select room and dates to see the price.";
+      return;
+    }
+    var nights = nightsBetween(checkIn, checkOut);
+    var roomCost = nights * room.price;
+    var tax = Math.round(roomCost * 0.12);        // 12% GST
+    var total = roomCost + tax;
+
+    summary.innerHTML =
+      "<b>Price Summary</b><br>" +
+      money(room.price) + " x " + nights + " night(s) = " + money(roomCost) + "<br>" +
+      "GST (12%) = " + money(tax) + "<br>" +
+      "<b>Total = " + money(total) + "</b>";
+  }
+
+  bRoom.onchange = updateSummary;
+  bCheckIn.onchange = updateSummary;
+  bCheckOut.onchange = updateSummary;
+
+  // Validation + submit
+  bookingForm.onsubmit = function (event) {
+    event.preventDefault();
+
+    var name = document.getElementById("bName").value.trim();
+    var email = document.getElementById("bEmail").value.trim();
+    var phone = document.getElementById("bPhone").value.trim();
+    var roomId = bRoom.value;
+    var checkIn = bCheckIn.value;
+    var checkOut = bCheckOut.value;
+    var guests = Number(document.getElementById("bGuests").value);
+    var agree = document.getElementById("bAgree").checked;
+
+    var ok = true;
+
+    // Name: letters and spaces only, at least 3 characters
+    if (!setError("bNameErr", /^[A-Za-z ]{3,}$/.test(name) ? "" : "Enter a valid name (letters only, min 3).")) ok = false;
+
+    // Email
+    if (!setError("bEmailErr", /^[^ ]+@[^ ]+\.[a-z]{2,}$/i.test(email) ? "" : "Enter a valid email address.")) ok = false;
+
+    // Phone: 10 digits starting with 6, 7, 8 or 9
+    if (!setError("bPhoneErr", /^[6-9][0-9]{9}$/.test(phone) ? "" : "Enter a valid 10 digit mobile number.")) ok = false;
+
+    // Room
+    var room = findRoom(roomId);
+    if (!setError("bRoomErr", room ? "" : "Please select a room.")) ok = false;
+
+    // Dates
+    var dateMsg = "";
+    if (checkIn === "") dateMsg = "Select check-in date.";
+    else if (checkIn < todayText()) dateMsg = "Check-in date cannot be in the past.";
+    else if (checkOut === "") dateMsg = "Select check-out date.";
+    else if (checkOut <= checkIn) dateMsg = "Check-out must be after check-in.";
+    else if (nightsBetween(checkIn, checkOut) > 30) dateMsg = "You can book maximum 30 nights.";
+    if (!setError("bDateErr", dateMsg)) ok = false;
+
+    // Guests (must fit in the room)
+    var guestMsg = "";
+    if (guests < 1 || isNaN(guests)) guestMsg = "Enter number of guests.";
+    else if (room && guests > room.guests) guestMsg = "This room allows maximum " + room.guests + " guests.";
+    if (!setError("bGuestErr", guestMsg)) ok = false;
+
+    // Terms checkbox
+    if (!setError("bAgreeErr", agree ? "" : "You must accept the hotel rules.")) ok = false;
+
+    // Availability (only if everything above is fine)
+    if (ok && roomsLeft(room.id, checkIn, checkOut) <= 0) {
+      setError("bDateErr", "Sorry, this room is sold out for these dates.");
+      ok = false;
+    }
+
+    if (!ok) return;
+
+    // ----- Save the booking -----
+    var nights = nightsBetween(checkIn, checkOut);
+    var roomCost = nights * room.price;
+    var total = roomCost + Math.round(roomCost * 0.12);
+
+    var booking = {
+      id: "SE" + Date.now().toString().slice(-6),
+      name: name,
+      email: email,
+      phone: phone,
+      roomId: room.id,
+      roomName: room.name,
+      checkIn: checkIn,
+      checkOut: checkOut,
+      guests: guests,
+      nights: nights,
+      total: total,
+      status: "Confirmed"
+    };
+
+    var list = getBookings();
+    list.push(booking);
+    saveBookings(list);
+    justBooked = true;
+
+    // ----- Show confirmation -----
+    bookingForm.style.display = "none";
+    document.getElementById("confirmBox").innerHTML =
+      "<div class='success-box'>" +
+      "<h2>Booking Confirmed! ✅</h2>" +
+      "<p>Thank you, <b>" + name + "</b>.</p>" +
+      "<p>Booking ID: <b>" + booking.id + "</b></p>" +
+      "<p>Room: " + room.name + "<br>" +
+      "Check-in: " + checkIn + "<br>Check-out: " + checkOut + "<br>" +
+      "Guests: " + guests + " | Nights: " + nights + "</p>" +
+      "<p><b>Total Amount: " + money(total) + "</b></p>" +
+      "<a class='btn' href='#mybookings'>View My Bookings</a></div>";
+  };
+
+
+  // ---------- 9. MY BOOKINGS PAGE ----------
+  var searchBox = document.getElementById("searchBox");
+
+  function showStats(list) {
+    var confirmed = 0;
+    var cancelled = 0;
+    var revenue = 0;
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].status === "Confirmed") {
+        confirmed++;
+        revenue = revenue + list[i].total;
+      } else {
+        cancelled++;
+      }
+    }
+    document.getElementById("sTotal").textContent = list.length;
+    document.getElementById("sConfirmed").textContent = confirmed;
+    document.getElementById("sCancelled").textContent = cancelled;
+    document.getElementById("sRevenue").textContent = money(revenue);
+  }
+
+  function showTable() {
+    var list = getBookings();
+    showStats(list);
+
+    var word = searchBox.value.trim().toLowerCase();
+    var html = "";
+    var shown = 0;
+
+    for (var i = 0; i < list.length; i++) {
+      var b = list[i];
+      // search by booking id or guest name
+      if (word !== "" && b.id.toLowerCase().indexOf(word) === -1 && b.name.toLowerCase().indexOf(word) === -1) {
+        continue;
+      }
+      var statusClass = b.status === "Confirmed" ? "status-ok" : "status-cancel";
+      html += "<tr>" +
+        "<td>" + b.id + "</td>" +
+        "<td>" + b.name + "<br><small>" + b.phone + "</small></td>" +
+        "<td>" + b.roomName + "</td>" +
+        "<td>" + b.checkIn + " to " + b.checkOut + "<br><small>" + b.nights + " night(s), " + b.guests + " guest(s)</small></td>" +
+        "<td>" + money(b.total) + "</td>" +
+        "<td class='" + statusClass + "'>" + b.status + "</td>" +
+        "<td>";
+      if (b.status === "Confirmed") {
+        html += "<button class='btn-red' onclick='cancelBooking(\"" + b.id + "\")'>Cancel</button>";
+      }
+      html += "</td></tr>";
+      shown++;
+    }
+
+    if (shown === 0) {
+      html = "<tr><td colspan='7'>No bookings found.</td></tr>";
+    }
+    document.getElementById("tableBody").innerHTML = html;
+  }
+
+  function cancelBooking(id) {
+    if (!confirm("Cancel booking " + id + "?")) return;
+    var list = getBookings();
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === id) {
+        list[i].status = "Cancelled";
+      }
+    }
+    saveBookings(list);
+    showTable();
+  }
+
+  searchBox.oninput = showTable;
+
+
+  // ---------- 10. CONTACT PAGE ----------
+  var contactForm = document.getElementById("contactForm");
+
+  contactForm.onsubmit = function (event) {
+    event.preventDefault();
+
+    var name = document.getElementById("cName").value.trim();
+    var email = document.getElementById("cEmail").value.trim();
+    var subject = document.getElementById("cSubject").value;
+    var message = document.getElementById("cMessage").value.trim();
+    var ok = true;
+
+    if (!setError("cNameErr", /^[A-Za-z ]{3,}$/.test(name) ? "" : "Enter a valid name (letters only, min 3).")) ok = false;
+    if (!setError("cEmailErr", /^[^ ]+@[^ ]+\.[a-z]{2,}$/i.test(email) ? "" : "Enter a valid email address.")) ok = false;
+    if (!setError("cSubjectErr", subject !== "" ? "" : "Please choose a subject.")) ok = false;
+    if (!setError("cMessageErr", message.length >= 10 ? "" : "Message must be at least 10 characters.")) ok = false;
+
+    if (ok) {
+      document.getElementById("okMsg").textContent = "Thank you, " + name + "! We will reply soon.";
+      contactForm.reset();
+    } else {
+      document.getElementById("okMsg").textContent = "";
+    }
+  };
+
+
+  // ---------- 11. START ----------
+  window.onhashchange = handleHash;   // runs when the user clicks a menu link
+  handleHash();                        // show the correct page when the site opens
+  </script>
+
+</body>
+</html>
